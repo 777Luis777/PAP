@@ -22,9 +22,14 @@ class FichaUtilizador(models.Model):
 
 # --- PRESENÇA ---
 class Presenca(models.Model):
+    TIPO_CHOICES = [
+        ('entrada', 'Entrada'),
+        ('saida', 'Saída'),
+    ]
+    
     user = models.ForeignKey(FichaUtilizador, on_delete=models.CASCADE)
-    data_hora_entrada = models.DateTimeField(auto_now_add=True)
-    data_hora_saida = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    tipo = models.CharField(max_length=10, choices=TIPO_CHOICES, default='entrada')
+    data_hora = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.user.nome} - {self.data_hora_entrada } - {self.data_hora_saida}"
+        return f"{self.user.nome} - {self.tipo} - {self.data_hora}"

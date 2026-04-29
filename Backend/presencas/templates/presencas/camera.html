@@ -33,7 +33,7 @@
             border-radius: 20px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
             width: 100%;
-            max-width: 450px;
+            max-width: 550px;
             text-align: center;
             position: relative;
             overflow: hidden;
@@ -52,17 +52,65 @@
         h1 {
             font-size: 2.5rem;
             font-weight: 700;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
             color: #333;
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
-        .btn {
-            width: 100%;
-            padding: 18px 20px;
-            margin: 15px 0;
+        .detected-person {
+            background: #f0f4ff;
+            border: 2px solid #667eea;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 18px;
             font-weight: 500;
+        }
+
+        .detected-person .name {
+            color: #667eea;
+        }
+
+        .detected-person.unknown {
+            border-color: #ff9800;
+            background: #fff3e0;
+        }
+
+        .detected-person.unknown .name {
+            color: #ff6f00;
+        }
+
+        .camera-box {
+            width: 100%;
+            aspect-ratio: 4 / 3;
+            background: #000;
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1);
+        }
+
+        .camera-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 15px 20px;
+            font-size: 16px;
+            font-weight: 600;
             border: none;
             border-radius: 12px;
             cursor: pointer;
@@ -70,7 +118,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 8px;
             position: relative;
             overflow: hidden;
             text-decoration: none;
@@ -96,53 +144,212 @@
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
         }
 
-        .btn-confirmar {
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-entrada {
             background: linear-gradient(135deg, #4CAF50, #66BB6A);
             color: white;
         }
 
-        .btn-confirmar:hover {
+        .btn-entrada:hover:not(:disabled) {
             background: linear-gradient(135deg, #388E3C, #4CAF50);
         }
 
-        .btn-tabela {
+        .btn-saida {
+            background: linear-gradient(135deg, #FF9800, #FFB74D);
+            color: white;
+        }
+
+        .btn-saida:hover:not(:disabled) {
+            background: linear-gradient(135deg, #E65100, #FF9800);
+        }
+
+        .btn-voltar {
+            background: #f5f5f5;
+            color: #333;
+            margin-top: 10px;
+        }
+
+        .btn-voltar:hover {
+            background: #e0e0e0;
+        }
+
+        .message {
+            padding: 12px 15px;
+            border-radius: 12px;
+            margin: 15px 0;
+            font-size: 14px;
+            font-weight: 500;
+            display: none;
+        }
+
+        .message.success {
+            display: block;
+            background: #c8e6c9;
+            color: #2e7d32;
+            border: 1px solid #81c784;
+        }
+
+        .message.error {
+            display: block;
+            background: #ffcdd2;
+            color: #c62828;
+            border: 1px solid #ef9a9a;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 10% auto;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .modal-person {
+            font-size: 28px;
+            font-weight: 700;
+            color: #667eea;
+            margin: 20px 0;
+        }
+
+        .modal-text {
+            font-size: 16px;
+            color: #666;
+            margin: 15px 0;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 15px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .modal-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .modal-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-modal-entrada {
+            background: linear-gradient(135deg, #4CAF50, #66BB6A);
+            color: white;
+        }
+
+        .btn-modal-entrada:hover:not(:disabled) {
+            background: linear-gradient(135deg, #388E3C, #4CAF50);
+        }
+
+        .btn-modal-saida {
+            background: linear-gradient(135deg, #FF9800, #FFB74D);
+            color: white;
+        }
+
+        .btn-modal-saida:hover:not(:disabled) {
+            background: linear-gradient(135deg, #E65100, #FF9800);
+        }
+
+        .btn-modal-ok {
             background: linear-gradient(135deg, #2196F3, #42A5F5);
             color: white;
         }
 
-        .btn-logout {
-            background: linear-gradient(135deg, #ff0000, #ff0000);
-            color: white;
-        }
-
-        .btn-tabela:hover {
+        .btn-modal-ok:hover:not(:disabled) {
             background: linear-gradient(135deg, #1976D2, #2196F3);
         }
 
+        .btn-modal-cancel {
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .btn-modal-cancel:hover:not(:disabled) {
+            background: #e0e0e0;
+        }
+
+        .close-modal {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close-modal:hover {
+            color: #000;
+        }
+
         .footer {
-            margin-top: 30px;
+            margin-top: 20px;
             font-size: 14px;
             color: #777;
             font-weight: 300;
         }
 
-        @media (max-width: 480px) {
-            .container {
-                padding: 30px;
-                margin: 20px;
-            }
-            h1 {
-                font-size: 2rem;
-            }
-            .btn {
-                font-size: 16px;
-                padding: 15px 18px;
-            }
-        }
         .back-btn {
             position: absolute;
             top: 20px;
-            right: 20px;   /* 👈 agora fica à direita */
+            right: 20px;
             background: #f5f5f5;
             color: #333;
             padding: 10px 14px;
@@ -158,36 +365,29 @@
 
         .back-btn:hover {
             background: #e0e0e0;
-            transform: translateX(3px); /* efeito coerente com a direita */
+            transform: translateX(3px);
         }
-    
-    .camera-box {
-    width: 100%;
-    aspect-ratio: 4 / 3;
-    background: #000;
-    border-radius: 16px;
-    overflow: hidden;
-    margin-top: 20px;
-    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1);
-}
 
-.camera-box img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
+        @media (max-width: 480px) {
+            .container {
+                padding: 30px;
+                margin: 20px;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+            .button-group {
+                flex-direction: column;
+            }
+            .btn {
+                font-size: 14px;
+                padding: 12px 15px;
+            }
+        }
     </style>
 </head>
-<script>
-        function stopCamera() {
-            // Redireciona para home ou outra página
-            window.location.href = "{% url 'home' %}";
-        }
-</script>
 <body>
     <div class="container">
-
         <a href="{% url 'home' %}" class="back-btn">
             <i class="fa-solid fa-arrow-left"></i>
             Voltar
@@ -199,11 +399,208 @@
             <img src="{% url 'camera_feed' %}" />
         </div>
 
+        <div class="detected-person" id="detectedPerson" style="display: none;">
+            <span>Pessoa Detetada: <span class="name" id="personName"></span></span>
+        </div>
+
+        <div class="message" id="messageBox"></div>
+
         <div class="footer">
             FaceTrack - Sistema de Gestão de Presenças © 2026
         </div>
-
     </div>
+
+    <!-- Modal de Escolha (Entrada/Saída) -->
+    <div id="choiceModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="fecharModalEscolha()">&times;</span>
+            <div class="modal-header">Registar Presença</div>
+            <div class="modal-person" id="modalPersonName"></div>
+            <div class="modal-text">Selecione o tipo de registo:</div>
+            <div class="modal-buttons">
+                <button class="modal-btn btn-modal-entrada" onclick="registarPresenca('entrada')" id="btnEntrada">
+                    <i class="fa-solid fa-arrow-right"></i> Entrada
+                </button>
+                <button class="modal-btn btn-modal-saida" onclick="registarPresenca('saida')" id="btnSaida">
+                    <i class="fa-solid fa-arrow-left"></i> Saída
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmação -->
+    <div id="confirmationModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header" id="confirmationTitle"></div>
+            <div class="modal-text" id="confirmationMessage"></div>
+            <div class="modal-buttons" style="gap: 0;">
+                <button class="modal-btn btn-modal-ok" onclick="irParaHome()">
+                    OK
+                </button>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <script>
+        let lastDetectedPerson = null;
+        let isProcessing = false;
+        let pollingInterval = null;
+
+        function checkDetectedPerson() {
+            fetch('{% url "get_detected_person" %}')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.detectado) {
+                        if (lastDetectedPerson !== data.nome) {
+                            lastDetectedPerson = data.nome;
+                            const personDiv = document.getElementById('detectedPerson');
+                            const personName = document.getElementById('personName');
+                            
+                            personName.textContent = data.nome;
+                            
+                            if (data.nome === 'Desconhecido') {
+                                personDiv.classList.add('unknown');
+                            } else {
+                                personDiv.classList.remove('unknown');
+                            }
+                            
+                            personDiv.style.display = 'block';
+                            
+                            // Abrir modal de escolha
+                            abrirModalEscolha(data.nome);
+                        }
+                    } else {
+                        if (lastDetectedPerson !== null) {
+                            lastDetectedPerson = null;
+                            document.getElementById('detectedPerson').style.display = 'none';
+                        }
+                    }
+                })
+                .catch(error => console.log('Polling error:', error));
+        }
+
+        function abrirModalEscolha(nome) {
+            document.getElementById('modalPersonName').textContent = nome;
+            document.getElementById('choiceModal').style.display = 'block';
+        }
+
+        function fecharModalEscolha() {
+            document.getElementById('choiceModal').style.display = 'none';
+            lastDetectedPerson = null;
+            document.getElementById('detectedPerson').style.display = 'none';
+        }
+
+        function registarPresenca(tipo) {
+            if (isProcessing) return;
+            
+            const personName = document.getElementById('modalPersonName').textContent;
+            
+            if (!personName) {
+                alert('Nenhuma pessoa detetada. Tente novamente.');
+                return;
+            }
+
+            isProcessing = true;
+            desativarBotoes();
+
+            const dados = {
+                nome: personName,
+                tipo: tipo
+            };
+
+            fetch('{% url "registar_presenca" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify(dados)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.sucesso) {
+                    fecharModalEscolha();
+                    mostrarConfirmacao(personName, tipo, data.data_hora);
+                } else {
+                    alert(`Erro: ${data.erro}`);
+                }
+                isProcessing = false;
+                ativarBotoes();
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                alert('Erro ao registar presença. Tente novamente.');
+                isProcessing = false;
+                ativarBotoes();
+            });
+        }
+
+        function mostrarConfirmacao(nome, tipo, dataHora) {
+            const tipoTexto = tipo === 'entrada' ? 'ENTRADA' : 'SAÍDA';
+            const titulo = document.getElementById('confirmationTitle');
+            const mensagem = document.getElementById('confirmationMessage');
+            
+            titulo.innerHTML = `✓ Presença Registada`;
+            mensagem.innerHTML = `<strong>${nome}</strong><br><br>
+                                  Tipo: <strong>${tipoTexto}</strong><br>
+                                  Data/Hora: <strong>${dataHora}</strong>`;
+            
+            document.getElementById('confirmationModal').style.display = 'block';
+        }
+
+        function irParaHome() {
+            window.location.href = "{% url 'home' %}";
+        }
+
+        function desativarBotoes() {
+            document.getElementById('btnEntrada').disabled = true;
+            document.getElementById('btnSaida').disabled = true;
+        }
+
+        function ativarBotoes() {
+            document.getElementById('btnEntrada').disabled = false;
+            document.getElementById('btnSaida').disabled = false;
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Fechar modal ao clicar fora
+        window.onclick = function(event) {
+            const choiceModal = document.getElementById('choiceModal');
+            const confirmationModal = document.getElementById('confirmationModal');
+            
+            if (event.target === choiceModal) {
+                fecharModalEscolha();
+            }
+        }
+
+        // Iniciar polling quando a página carrega
+        document.addEventListener('DOMContentLoaded', function() {
+            pollingInterval = setInterval(checkDetectedPerson, 500);
+            checkDetectedPerson();
+        });
+
+        // Parar polling quando a página é descarregada
+        window.addEventListener('beforeunload', function() {
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+            }
+        });
+    </script>
 </body>
 
 </html>

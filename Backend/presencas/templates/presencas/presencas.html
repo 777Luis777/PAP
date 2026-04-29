@@ -188,8 +188,8 @@
                 <thead>
                     <tr>
                         <th>Nome</th>
-                        <th>Hora entrada</th>
-                        <th>Hora saída</th>
+                        <th>Tipo</th>
+                        <th>Data e Hora</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -197,9 +197,20 @@
                     <tr>
                         <td class="name">
                             <i class="fa-solid fa-user"></i>
-                            {{ presenca.user }}
+                            {{ presenca.user.nome }}
                         </td>
-                        <td>{{ presenca.data_hora }}</td>
+                        <td>
+                            {% if presenca.tipo == 'entrada' %}
+                                <span class="badge badge-ok">
+                                    <i class="fa-solid fa-arrow-right"></i> Entrada
+                                </span>
+                            {% else %}
+                                <span class="badge badge-late">
+                                    <i class="fa-solid fa-arrow-left"></i> Saída
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>{{ presenca.data_hora|date:"d/m/Y H:i:s" }}</td>
                     </tr>
                     {% empty %}
                     <tr>

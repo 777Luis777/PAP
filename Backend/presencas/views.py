@@ -5,13 +5,15 @@ import cv2
 import io
 import datetime
 import os
-from django.http import StreamingHttpResponse
+import json
+from django.http import StreamingHttpResponse, JsonResponse
 from django.conf import settings
 from django.db import IntegrityError
+from django.views.decorators.http import require_http_methods
 from PIL import Image
 from functools import wraps
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import FichaUtilizador
+from .models import FichaUtilizador, Presenca
 
 def admin_required(view_func):
     @wraps(view_func)
@@ -62,7 +64,15 @@ def presencas(request):
     # redirect to the named login url (typo corrected)
     if 'user_id' not in request.session:
         return redirect("login")
-    return render(request, "presencas/presencas.html", {"username": request.session.get('username')})
+    
+    # Obter todas as presenças ordenadas por data/hora descrescente
+    from .models import Presenca
+    todas_presencas = Presenca.objects.all().order_by('-data_hora')
+    
+    return render(request, "presencas/presencas.html", {
+        "username": request.session.get('username'),
+        "presencas": todas_presencas
+    })
 
 def load_known_faces():
     # use the Django ORM instead of a raw sqlite connection; this
@@ -95,7 +105,11 @@ def load_known_faces():
 KNOWN_FACE_ENCODINGS, KNOWN_FACE_NAMES = load_known_faces()
 
 
+# Variável global para armazenar o rosto detetado atualmente
+current_detected_person = None
+
 def gen_frames():
+    global current_detected_person
     video_capture = cv2.VideoCapture(0)
     if not video_capture.isOpened():
         print("[!] Erro ao abrir a câmara")
@@ -130,8 +144,13 @@ def gen_frames():
                         name = KNOWN_FACE_NAMES[best_match_index]
 
                 face_names.append(name)
+                current_detected_person = name  # Atualizar a pessoa detetada globalmente
 
         process_this_frame = not process_this_frame
+
+        # Se nenhum rosto foi detectado neste frame, limpar a pessoa detetada
+        if not face_names:
+            current_detected_person = None
 
         # Desenhar caixas e nomes
         for (top, right, bottom, left), name in zip(face_locations, face_names):
@@ -156,10 +175,53 @@ def camera_feed(request):
     return StreamingHttpResponse(gen_frames(),
                                  content_type='multipart/x-mixed-replace; boundary=frame')
 
+def get_detected_person(request):
+    """
+    Endpoint para obter a pessoa atualmente detetada na câmara.
+    Retorna JSON com o nome da pessoa detetada ou None.
+    """
+    global current_detected_person
+    return JsonResponse({
+        'nome': current_detected_person,
+        'detectado': current_detected_person is not None
+    })
 
 def camera_page(request):
     from django.shortcuts import render
     return render(request, "presencas/camera.html")
+
+@require_http_methods(["POST"])
+def registar_presenca(request):
+    """
+    Endpoint para registar uma presença (entrada ou saída).
+    Esperado JSON: {"nome": "Nome do Utilizador", "tipo": "entrada" ou "saida"}
+    """
+    try:
+        data = json.loads(request.body)
+        nome = data.get('nome')
+        tipo = data.get('tipo', 'entrada')
+        
+        if not nome:
+            return JsonResponse({'sucesso': False, 'erro': 'Nome não fornecido'}, status=400)
+        
+        if tipo not in ['entrada', 'saida']:
+            return JsonResponse({'sucesso': False, 'erro': 'Tipo inválido'}, status=400)
+        
+        try:
+            utilizador = FichaUtilizador.objects.get(nome=nome)
+            presenca = Presenca(user=utilizador, tipo=tipo)
+            presenca.save()
+            return JsonResponse({
+                'sucesso': True,
+                'mensagem': f'Presença registada: {nome} - {tipo.capitalize()}',
+                'data_hora': presenca.data_hora.strftime('%d/%m/%Y %H:%M:%S')
+            })
+        except FichaUtilizador.DoesNotExist:
+            return JsonResponse({'sucesso': False, 'erro': f'Utilizador {nome} não encontrado'}, status=404)
+    except json.JSONDecodeError:
+        return JsonResponse({'sucesso': False, 'erro': 'JSON inválido'}, status=400)
+    except Exception as e:
+        return JsonResponse({'sucesso': False, 'erro': str(e)}, status=500)
 
 @admin_required
 def administracao(request):
