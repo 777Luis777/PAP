@@ -446,6 +446,7 @@
         let lastDetectedPerson = null;
         let isProcessing = false;
         let pollingInterval = null;
+        let cameraFeedUrl = "{% url 'camera_feed' %}";
 
         function checkDetectedPerson() {
             fetch('{% url "get_detected_person" %}')
@@ -483,12 +484,21 @@
         function abrirModalEscolha(nome) {
             document.getElementById('modalPersonName').textContent = nome;
             document.getElementById('choiceModal').style.display = 'block';
+            // Pausar a câmara quando o modal abre
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+                pollingInterval = null;
+            }
         }
 
         function fecharModalEscolha() {
             document.getElementById('choiceModal').style.display = 'none';
             lastDetectedPerson = null;
             document.getElementById('detectedPerson').style.display = 'none';
+            // Retomar a câmara quando o modal fecha
+            if (!pollingInterval) {
+                pollingInterval = setInterval(checkDetectedPerson, 500);
+            }
         }
 
         function registarPresenca(tipo) {

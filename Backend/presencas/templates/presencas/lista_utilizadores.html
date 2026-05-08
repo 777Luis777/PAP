@@ -249,6 +249,28 @@
             </div>
         </div>
 
+        <div style="margin-bottom: 20px;">
+            <form method="GET" style="display: flex; gap: 10px; align-items: center;">
+                <div style="flex: 1; position: relative;">
+                    <input type="text" name="pesquisa" placeholder="Pesquisar por nome..." value="{{ pesquisa }}" 
+                        style="width: 100%; padding: 12px 16px; border: 2px solid #e0e0e0; border-radius: 12px; font-size: 15px; transition: border-color 0.3s ease;" 
+                        onkeyup="this.style.borderColor = this.value ? '#2196F3' : '#e0e0e0';">
+                </div>
+                <button type="submit" style="padding: 12px 20px; background: #2196F3; color: white; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: background 0.3s ease;" 
+                    onmouseover="this.style.background='#1a73d8'" onmouseout="this.style.background='#2196F3'">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    Pesquisar
+                </button>
+                {% if pesquisa %}
+                <a href="{% url 'lista_utilizadores' %}" style="padding: 12px 20px; background: #f5f5f5; color: #333; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; text-decoration: none; transition: background 0.3s ease;" 
+                    onmouseover="this.style.background='#e0e0e0'" onmouseout="this.style.background='#f5f5f5'">
+                    <i class="fa-solid fa-times"></i>
+                    Limpar
+                </a>
+                {% endif %}
+            </form>
+        </div>
+
         <div class="table-wrapper">
             <table>
                 <thead>

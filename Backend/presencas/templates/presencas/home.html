@@ -145,6 +145,9 @@
         <a href="{% url 'camera_page' %}" class="btn btn-confirmar">
             <i class="fas fa-check-circle"></i> Confirmar Presença
         </a>
+        <a href="{% url 'presencas_utilizador' %}" class="btn btn-tabela">
+            <i class="fas fa-table"></i> Lista de Presenças
+        </a>
         {% if is_admin %}
         <a href="{% url 'administracao' %}" class="btn btn-tabela">
             <i class="fa fa-sliders"></i> Administração

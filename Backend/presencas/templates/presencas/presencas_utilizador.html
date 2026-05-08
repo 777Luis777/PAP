@@ -452,19 +452,6 @@
                         >
                     </div>
 
-                    <!-- Filtro por Utilizador -->
-                    <div class="filter-group">
-                        <label for="filtro_utilizador">Utilizador:</label>
-                        <select id="filtro_utilizador" name="filtro_utilizador">
-                            <option value="">Todos os utilizadores</option>
-                            {% for utilizador in utilizadores %}
-                                <option value="{{ utilizador.id }}" {% if filtro_utilizador|stringformat:"s" == utilizador.id|stringformat:"s" %}selected{% endif %}>
-                                    {{ utilizador.nome }}
-                                </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
                     <!-- Filtro por Tipo -->
                     <div class="filter-group">
                         <label for="filtro_tipo">Tipo:</label>

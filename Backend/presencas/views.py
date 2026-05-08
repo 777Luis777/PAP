@@ -67,11 +67,67 @@ def presencas(request):
     
     # Obter todas as presenças ordenadas por data/hora descrescente
     from .models import Presenca
+    from django.db.models import Q
+    
     todas_presencas = Presenca.objects.all().order_by('-data_hora')
+    
+    # Aplicar filtros
+    filtro_dia = request.GET.get('filtro_dia', '')
+    filtro_utilizador = request.GET.get('filtro_utilizador', '')
+    filtro_tipo = request.GET.get('filtro_tipo', '')
+    
+    if filtro_dia:
+        # Filtrar por data (apenas a data, não a hora)
+        from datetime import datetime
+        data_selecionada = datetime.strptime(filtro_dia, '%Y-%m-%d').date()
+        todas_presencas = todas_presencas.filter(data_hora__date=data_selecionada)
+    
+    if filtro_utilizador:
+        todas_presencas = todas_presencas.filter(user_id=filtro_utilizador)
+    
+    if filtro_tipo:
+        todas_presencas = todas_presencas.filter(tipo=filtro_tipo)
+    
+    # Obter lista de utilizadores para o dropdown
+    utilizadores = FichaUtilizador.objects.all().order_by('nome')
     
     return render(request, "presencas/presencas.html", {
         "username": request.session.get('username'),
-        "presencas": todas_presencas
+        "presencas": todas_presencas,
+        "utilizadores": utilizadores,
+        "filtro_dia": filtro_dia,
+        "filtro_utilizador": filtro_utilizador,
+        "filtro_tipo": filtro_tipo,
+    })
+def presencas_utilizador(request):
+    # redirect to the named login url (typo corrected)
+    if 'user_id' not in request.session:
+        return redirect("login")
+    
+    # Obter todas as presenças do utilizador logado ordenadas por data/hora descrescente
+    from .models import Presenca
+    
+    user_id = request.session['user_id']
+    todas_presencas = Presenca.objects.filter(user_id=user_id).order_by('-data_hora')
+    
+    # Aplicar filtros
+    filtro_dia = request.GET.get('filtro_dia', '')
+    filtro_tipo = request.GET.get('filtro_tipo', '')
+    
+    if filtro_dia:
+        # Filtrar por data (apenas a data, não a hora)
+        from datetime import datetime
+        data_selecionada = datetime.strptime(filtro_dia, '%Y-%m-%d').date()
+        todas_presencas = todas_presencas.filter(data_hora__date=data_selecionada)
+    
+    if filtro_tipo:
+        todas_presencas = todas_presencas.filter(tipo=filtro_tipo)
+    
+    return render(request, "presencas/presencas.html", {
+        "username": request.session.get('username'),
+        "presencas": todas_presencas,
+        "filtro_dia": filtro_dia,
+        "filtro_tipo": filtro_tipo,
     })
 
 def load_known_faces():
@@ -229,8 +285,17 @@ def administracao(request):
 
 @admin_required
 def lista_utilizadores(request):
-    utilizadores = FichaUtilizador.objects.all()
-    return render(request, "presencas/lista_utilizadores.html", {"utilizadores": utilizadores})
+    utilizadores = FichaUtilizador.objects.all().order_by('nome')
+    
+    # Aplicar filtro de pesquisa por nome
+    pesquisa = request.GET.get('pesquisa', '')
+    if pesquisa:
+        utilizadores = utilizadores.filter(nome__icontains=pesquisa)
+    
+    return render(request, "presencas/lista_utilizadores.html", {
+        "utilizadores": utilizadores,
+        "pesquisa": pesquisa
+    })
 
 
 @admin_required
