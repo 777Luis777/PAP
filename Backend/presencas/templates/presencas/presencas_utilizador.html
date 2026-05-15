@@ -3,566 +3,154 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FaceTrack</title>
+    <title>Minhas Presenças - FaceTrack</title>
     {% load static %}
     <link rel="icon" href="{% static 'favicon.ico' %}">
-
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css">
-
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Roboto', sans-serif;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #333;
-        }
-
-        .container {
-            background: #fff;
-            width: 100%;
-            max-width: 900px;
-            padding: 50px 40px;
-            border-radius: 20px;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
-            position: relative;
-            margin: 20px auto;
-        }
-
-        .container::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 6px;
-            background: linear-gradient(90deg, #4CAF50, #2196F3);
-            border-radius: 20px 20px 0 0;
-        }
-
-        .header {
-            margin-bottom: 30px;
-        }
-
-        .header h1 {
-            font-size: 2.2rem;
-            font-weight: 700;
-        }
-
-        .header p {
-            margin-top: 8px;
-            color: #777;
-            font-size: 15px;
-        }
-
-        .table-wrapper {
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            border-radius: 14px;
-            overflow: hidden;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-        }
-
-        thead {
-            background: linear-gradient(135deg, #2196F3, #42A5F5);
-            color: white;
-        }
-
-        thead th {
-            padding: 16px;
-            text-align: left;
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        tbody td {
-            padding: 16px;
-            border-bottom: 1px solid #eee;
-            font-size: 15px;
-        }
-
-        tbody tr:nth-child(even) {
-            background: #f9f9f9;
-        }
-
-        tbody tr:hover {
-            background: #e3f2fd;
-        }
-
-        .name {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: 500;
-        }
-
-        .badge {
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 500;
-            color: white;
-            display: inline-block;
-        }
-
-        .badge-ok {
-            background: #4CAF50;
-        }
-
-        .badge-late {
-            background: #f44336;
-        }
-
-        .footer {
-            margin-top: 25px;
-            font-size: 13px;
-            color: #777;
-            text-align: center;
-        }
-
-        .filters-section {
-            background: #f5f5f5;
-            padding: 25px;
-            border-radius: 12px;
-            margin-bottom: 30px;
-            border-left: 4px solid #2196F3;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
-
-        .filters-title {
-            font-weight: 600;
-            margin-bottom: 15px;
-            color: #333;
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .filters-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 12px;
-        }
-
-        .filter-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .filter-group label {
-            font-size: 13px;
-            font-weight: 500;
-            margin-bottom: 6px;
-            color: #555;
-        }
-
-        .filter-group input,
-        .filter-group select {
-            padding: 10px 12px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 14px;
-            font-family: 'Roboto', sans-serif;
-            transition: all 0.3s ease;
-        }
-
-        .filter-group input:focus,
-        .filter-group select:focus {
-            outline: none;
-            border-color: #2196F3;
-            box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
-        }
-
-        .filter-group select {
-            cursor: pointer;
-            appearance: none;
-            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-            background-repeat: no-repeat;
-            background-position: right 10px center;
-            background-size: 18px;
-            padding-right: 32px;
-        }
-
-        .filters-buttons {
-            display: flex;
-            gap: 10px;
-            justify-content: flex-end;
-        }
-
-        .btn-filter, .btn-clear {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .btn-filter {
-            background: linear-gradient(135deg, #2196F3, #1976D2);
-            color: white;
-        }
-
-        .btn-filter:hover {
-            box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4);
-            transform: translateY(-2px);
-        }
-
-        .btn-clear {
-            background: #e0e0e0;
-            color: #555;
-        }
-
-        .btn-clear:hover {
-            background: #d0d0d0;
-        }
-
-        .results-info {
-            font-size: 13px;
-            color: #777;
-            margin-bottom: 15px;
-            padding: 12px 15px;
-            border-bottom: 1px solid #e0e0e0;
-            background: #f9f9f9;
-            border-radius: 6px;
-        }
-
-        @media (max-width: 768px) {
-            .filters-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .filters-buttons {
-                justify-content: stretch;
-            }
-
-            .btn-filter, .btn-clear {
-                flex: 1;
-            }
-        }
-
-        .footer {
-            margin-top: 25px;
-            font-size: 13px;
-            color: #777;
-            text-align: center;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                max-width: 95%;
-                padding: 30px 25px;
-            }
-
-            .filters-grid {
-                grid-template-columns: 1fr 1fr;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .container {
-                padding: 25px;
-                margin: 10px auto;
-            }
-
-            .header h1 {
-                font-size: 1.8rem;
-            }
-
-            .header p {
-                font-size: 14px;
-            }
-
-            tbody td, thead th {
-                padding: 12px;
-            }
-
-            .filters-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .filters-buttons {
-                flex-direction: column;
-            }
-
-            .btn-filter, .btn-clear {
-                width: 100%;
-            }
-
-            table {
-                font-size: 13px;
-            }
-
-            thead th {
-                padding: 10px 8px;
-            }
-
-            tbody td {
-                padding: 10px 8px;
-            }
-        }
-        .back-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;   /* 👈 agora fica à direita */
-            background: #f5f5f5;
-            color: #333;
-            padding: 10px 14px;
-            border-radius: 10px;
-            font-size: 14px;
-            font-weight: 500;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.3s ease;
-        }
-
-        .back-btn:hover {
-            background: #e0e0e0;
-            transform: translateX(3px); /* efeito coerente com a direita */
-        }
-
-        /* Customizar Choices.js */
-        .choices {
-            margin: 0;
-            width: 100%;
-        }
-
-        .choices__inner {
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 0 12px;
-            font-size: 14px;
-            background-color: #fff;
-            transition: all 0.3s ease;
-            min-height: 42px;
-            display: flex;
-            align-items: center;
-            width: 100%;
-            box-shadow: none;
-        }
-
-        .choices[data-type*="select-one"] .choices__inner {
-            height: 42px;
-        }
-
-        .choices[data-type*="select-one"] .choices__list--single {
-            padding: 0 24px 0 0;
-        }
-
-        .choices__inner:focus-within {
-            border-color: #2196F3;
-            box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
-        }
-
-        .choices__list--dropdown {
-            border: 1px solid #ddd;
-            border-top: none;
-            border-radius: 0 0 8px 8px;
-            background-color: #fff;
-        }
-
-        .choices__list--dropdown .choices__list {
-            max-height: 250px;
-            overflow-y: auto;
-        }
-
-        .choices__item--selectable {
-            padding: 10px 15px;
-            color: #333;
-            cursor: pointer;
-        }
-
-        .choices__item--selectable:hover {
-            background-color: #e3f2fd;
-        }
-
-        .choices__item--selectable.is-highlighted {
-            background-color: #e3f2fd;
-            color: #111;
-        }
-
-        .choices__input,
-        .choices__input--cloned {
-            padding: 0;
-            margin: 0;
-            border: none;
-            background-color: transparent;
-            font-size: 14px;
-            font-family: 'Roboto', sans-serif;
-        }
-
-        .choices__input:focus {
-            outline: none;
-        }
-
-        .choices__placeholder {
-            color: #999;
-        }
-
-    </style>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
-
 <body>
-    <div class="container">
-        <a href="{% url 'administracao' %}" class="back-btn">
-            <i class="fa-solid fa-arrow-left"></i>
-            Voltar
-        </a>
-
-        <div class="header">
-            <h1>Tabela de Presenças</h1>
-            <p>Registos de entrada/saida dos colaboradores</p>
-        </div>
-
-        <!-- Filtros -->
-        <div class="filters-section">
-            <div class="filters-title">
-                <i class="fa-solid fa-filter"></i> Filtros
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{% url 'home' %}">
+                <i class="fas fa-face-smile"></i> FaceTrack
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'home' %}">
+                            <i class="fas fa-home"></i> Home
+                        </a>
+                    </li>
+                </ul>
             </div>
-            
-            <form method="GET" class="filters-form">
-                <div class="filters-grid">
-                    <!-- Filtro por Dia -->
-                    <div class="filter-group">
-                        <label for="filtro_dia">Dia:</label>
-                        <input 
-                            type="date" 
-                            id="filtro_dia" 
-                            name="filtro_dia" 
-                            value="{{ filtro_dia }}"
-                        >
-                    </div>
+        </div>
+    </nav>
 
-                    <!-- Filtro por Tipo -->
-                    <div class="filter-group">
-                        <label for="filtro_tipo">Tipo:</label>
-                        <select id="filtro_tipo" name="filtro_tipo">
-                            <option value="">Todos os tipos</option>
-                            <option value="entrada" {% if filtro_tipo == "entrada" %}selected{% endif %}>
-                                <i class="fa-solid fa-arrow-right"></i> Entrada
-                            </option>
-                            <option value="saida" {% if filtro_tipo == "saida" %}selected{% endif %}>
-                                <i class="fa-solid fa-arrow-left"></i> Saída
-                            </option>
-                        </select>
+    <!-- Main Content -->
+    <div class="container-fluid py-5">
+        <div class="row">
+            <div class="col-lg-11 mx-auto">
+                <!-- Header -->
+                <div class="mb-4">
+                    <h1 class="mb-1">
+                        <i class="fas fa-clipboard-list"></i> Minhas Presenças
+                    </h1>
+                    <p class="text-muted">Visualize seus registos de entrada e saída</p>
+                </div>
+
+                <!-- Filters Card -->
+                <div class="card mb-4 border-0 shadow">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-filter"></i> Filtros
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="GET">
+                            <div class="row g-3">
+                                <!-- Date Filter -->
+                                <div class="col-md-6">
+                                    <label for="filtro_dia" class="form-label">
+                                        <i class="fas fa-calendar"></i> Data
+                                    </label>
+                                    <input 
+                                        type="date" 
+                                        class="form-control" 
+                                        id="filtro_dia" 
+                                        name="filtro_dia" 
+                                        value="{{ filtro_dia }}"
+                                    >
+                                </div>
+
+                                <!-- Type Filter -->
+                                <div class="col-md-6">
+                                    <label for="filtro_tipo" class="form-label">
+                                        <i class="fas fa-door-open"></i> Tipo de Registo
+                                    </label>
+                                    <select class="form-select" id="filtro_tipo" name="filtro_tipo">
+                                        <option value="">Todos os tipos</option>
+                                        <option value="entrada" {% if filtro_tipo == "entrada" %}selected{% endif %}>
+                                            Entrada
+                                        </option>
+                                        <option value="saida" {% if filtro_tipo == "saida" %}selected{% endif %}>
+                                            Saída
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="d-flex gap-2 mt-4">
+                                <button type="submit" class="btn btn-info">
+                                    <i class="fas fa-search"></i> Aplicar Filtros
+                                </button>
+                                <a href="{% url 'presencas_utilizador' %}" class="btn btn-secondary">
+                                    <i class="fas fa-redo"></i> Limpar
+                                </a>
+                            </div>
+                        </form>
                     </div>
                 </div>
 
-                <div class="filters-buttons">
-                    <button type="reset" class="btn-clear" onclick="window.location.href='{% url 'presencas' %}'">
-                        <i class="fa-solid fa-rotate-left"></i> Limpar Filtros
-                    </button>
-                    <button type="submit" class="btn-filter">
-                        <i class="fa-solid fa-magnifying-glass"></i> Aplicar Filtros
-                    </button>
+                <!-- Results Info -->
+                {% if presencas %}
+                    <div class="alert alert-info mb-4" role="alert">
+                        <i class="fas fa-info-circle"></i> 
+                        Total: <strong>{{ presencas|length }}</strong> registo{{ presencas|length|pluralize:"s" }}
+                    </div>
+                {% endif %}
+
+                <!-- Table -->
+                <div class="card">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="text-center">Tipo</th>
+                                    <th class="text-center"><i class="fas fa-calendar-alt"></i> Data e Hora</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for presenca in presencas %}
+                                <tr>
+                                    <td class="text-center">
+                                        {% if presenca.tipo == 'entrada' %}
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-door-open"></i> Entrada
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-danger">
+                                                <i class="fas fa-door-closed"></i> Saída
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        <code class="text-muted">{{ presenca.data_hora|date:"d/m/Y \á\s H:i:s" }}</code>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="2" class="text-center text-muted py-5">
+                                        <i class="fas fa-inbox" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                                        <p class="mt-3">Nenhuma presença registada</p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-            </form>
-        </div>
-
-        {% if presencas %}
-            <div class="results-info">
-                <i class="fa-solid fa-info-circle"></i>
-                Mostrando <strong>{{ presencas|length }}</strong> registo{{ presencas|length|pluralize:"s" }} de presença.
             </div>
-        {% endif %}
-            <table>
-                <thead>
-                    <tr>
-                        <th>Nome</th>
-                        <th>Tipo</th>
-                        <th>Data e Hora</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for presenca in presencas %}
-                    <tr>
-                        <td class="name">
-                            <i class="fa-solid fa-user"></i>
-                            {{ presenca.user.nome }}
-                        </td>
-                        <td>
-                            {% if presenca.tipo == 'entrada' %}
-                                <span class="badge badge-ok">
-                                    <i class="fa-solid fa-arrow-right"></i> Entrada
-                                </span>
-                            {% else %}
-                                <span class="badge badge-late">
-                                    <i class="fa-solid fa-arrow-left"></i> Saída
-                                </span>
-                            {% endif %}
-                        </td>
-                        <td>{{ presenca.data_hora|date:"d/m/Y H:i:s" }}</td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="3" style="text-align: center; color: #777; padding: 20px;">
-                            Nenhuma presença registada.
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-
-        <div class="footer">
-            FaceTrack - Sistema de Gestão de Presenças © 2026
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
-    
-    <script>
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
-            }
-            return cookieValue;
-        }
-
-        // Inicializar Choices.js no select de utilizadores
-        document.addEventListener('DOMContentLoaded', function() {
-            const selectElement = document.getElementById('filtro_utilizador');
-            
-            if (selectElement) {
-                new Choices(selectElement, {
-                    searchEnabled: true,
-                    searchChoices: true,
-                    searchResultLimit: 15,
-                    renderChoiceLimit: -1,
-                    shouldSort: false,
-                    noResultsText: 'Nenhum utilizador encontrado',
-                    noChoicesText: 'Sem utilizadores',
-                    placeholderValue: 'Seleciona um utilizador',
-                    itemSelectText: ''
-                });
-            }
-        });
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+

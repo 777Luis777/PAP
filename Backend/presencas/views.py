@@ -123,7 +123,7 @@ def presencas_utilizador(request):
     if filtro_tipo:
         todas_presencas = todas_presencas.filter(tipo=filtro_tipo)
     
-    return render(request, "presencas/presencas.html", {
+    return render(request, "presencas/presencas_utilizador.html", {
         "username": request.session.get('username'),
         "presencas": todas_presencas,
         "filtro_dia": filtro_dia,

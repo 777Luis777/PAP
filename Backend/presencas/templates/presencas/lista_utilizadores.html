@@ -3,313 +3,131 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FaceTrack</title>
+    <title>Utilizadores - FaceTrack</title>
     {% load static %}
     <link rel="icon" href="{% static 'favicon.ico' %}">
-
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Roboto', sans-serif;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #333;
-        }
-
-        .container {
-            background: #fff;
-            width: 100%;
-            max-width: 700px;
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
-            position: relative;
-        }
-
-        .container::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 6px;
-            background: linear-gradient(90deg, #4CAF50, #2196F3);
-            border-radius: 20px 20px 0 0;
-        }
-
-        .header {
-            margin-bottom: 30px;
-        }
-
-        .header h1 {
-            font-size: 2.2rem;
-            font-weight: 700;
-        }
-
-        .header p {
-            margin-top: 8px;
-            color: #777;
-            font-size: 15px;
-        }
-
-        .table-wrapper {
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            border-radius: 14px;
-            overflow: hidden;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-        }
-
-        thead {
-            background: linear-gradient(135deg, #2196F3, #42A5F5);
-            color: white;
-        }
-
-        thead th {
-            padding: 16px;
-            text-align: left;
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        tbody td {
-            padding: 16px;
-            border-bottom: 1px solid #eee;
-            font-size: 15px;
-        }
-
-        tbody tr:nth-child(even) {
-            background: #f9f9f9;
-        }
-
-        tbody tr:hover {
-            background: #e3f2fd;
-        }
-
-        .name {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-            font-weight: 500;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .action-icons {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .action-icon {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 32px;
-            height: 32px;
-            border-radius: 10px;
-            background: #f5f5f5;
-            color: #333;
-            text-decoration: none;
-            transition: background 0.2s ease, transform 0.2s ease;
-        }
-
-        .action-icon:hover {
-            background: #e0e0e0;
-            transform: translateY(-1px);
-        }
-
-        .action-icon.delete {
-            color: #d32f2f;
-        }
-
-        .btn {
-            padding: 10px 14px;
-            border-radius: 12px;
-            border: none;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s ease, background 0.2s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            text-decoration: none;
-            color: #fff;
-        }
-
-        .btn-primary {
-            background: #2196F3;
-        }
-
-        .btn-primary:hover {
-            background: #1a73d8;
-            transform: translateY(-1px);
-        }
-
-        .badge {
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 500;
-            color: white;
-            display: inline-block;
-        }
-
-        .badge-ok {
-            background: #4CAF50;
-        }
-
-        .badge-late {
-            background: #f44336;
-        }
-
-        .footer {
-            margin-top: 25px;
-            font-size: 13px;
-            color: #777;
-            text-align: center;
-        }
-
-        @media (max-width: 480px) {
-            .container {
-                padding: 25px;
-            }
-
-            .header h1 {
-                font-size: 1.8rem;
-            }
-
-            tbody td, thead th {
-                padding: 12px;
-            }
-        }
-        .back-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: #f5f5f5;
-            color: #333;
-            padding: 10px 14px;
-            border-radius: 10px;
-            font-size: 14px;
-            font-weight: 500;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.3s ease;
-        }
-
-        .back-btn:hover {
-            background: #e0e0e0;
-            transform: translateX(3px); /* efeito coerente com a direita */
-        }
-
-    </style>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
-
 <body>
-    <div class="container">
-        <a href="{% url 'administracao' %}" class="back-btn">
-            <i class="fa-solid fa-arrow-left"></i>
-            Voltar
-        </a>
-
-        <div class="header">
-            <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
-                <div>
-                    <h1>Utilizadores</h1>
-                    <p>Lista de utilizadores registados</p>
-                </div>
-                <a href="{% url 'adicionar_utilizador' %}" class="btn btn-primary" style="padding: 10px 14px; border-radius: 12px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; margin-top: 25px;">
-                    <i class="fa-solid fa-plus"></i>
-                    Adicionar
-                </a>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{% url 'home' %}">
+                <i class="fas fa-face-smile"></i> FaceTrack
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'administracao' %}">
+                            <i class="fas fa-arrow-left"></i> Voltar
+                        </a>
+                    </li>
+                </ul>
             </div>
         </div>
+    </nav>
 
-        <div style="margin-bottom: 20px;">
-            <form method="GET" style="display: flex; gap: 10px; align-items: center;">
-                <div style="flex: 1; position: relative;">
-                    <input type="text" name="pesquisa" placeholder="Pesquisar por nome..." value="{{ pesquisa }}" 
-                        style="width: 100%; padding: 12px 16px; border: 2px solid #e0e0e0; border-radius: 12px; font-size: 15px; transition: border-color 0.3s ease;" 
-                        onkeyup="this.style.borderColor = this.value ? '#2196F3' : '#e0e0e0';">
+    <!-- Main Content -->
+    <div class="container-fluid py-5">
+        <div class="row">
+            <div class="col-lg-10 mx-auto">
+                <!-- Header -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h1 class="mb-1">
+                            <i class="fas fa-users"></i> Utilizadores
+                        </h1>
+                        <p class="text-muted">Gerencie todos os utilizadores registados no sistema</p>
+                    </div>
+                    <a href="{% url 'adicionar_utilizador' %}" class="btn btn-success btn-lg">
+                        <i class="fas fa-plus"></i> Novo Utilizador
+                    </a>
                 </div>
-                <button type="submit" style="padding: 12px 20px; background: #2196F3; color: white; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: background 0.3s ease;" 
-                    onmouseover="this.style.background='#1a73d8'" onmouseout="this.style.background='#2196F3'">
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                    Pesquisar
-                </button>
-                {% if pesquisa %}
-                <a href="{% url 'lista_utilizadores' %}" style="padding: 12px 20px; background: #f5f5f5; color: #333; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; text-decoration: none; transition: background 0.3s ease;" 
-                    onmouseover="this.style.background='#e0e0e0'" onmouseout="this.style.background='#f5f5f5'">
-                    <i class="fa-solid fa-times"></i>
-                    Limpar
-                </a>
-                {% endif %}
-            </form>
-        </div>
 
-        <div class="table-wrapper">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Nome</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for user in utilizadores %}
-                    <tr>
-                        <td class="name">
-                            <div class="user-info">
-                                <i class="fa-solid fa-user"></i>
-                                <span>{{ user.nome }}</span>
-                            </div>
+                <!-- Search Card -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <form method="GET" class="d-flex gap-2">
+                            <input type="text" class="form-control" name="pesquisa" 
+                                   placeholder="Pesquisar por nome..." value="{{ pesquisa }}">
+                            <button type="submit" class="btn btn-info">
+                                <i class="fas fa-search"></i> Pesquisar
+                            </button>
+                            {% if pesquisa %}
+                            <a href="{% url 'lista_utilizadores' %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Limpar
+                            </a>
+                            {% endif %}
+                        </form>
+                    </div>
+                </div>
 
-                            <span class="action-icons">
-                                <a href="{% url 'editar_utilizador' user.id %}" class="action-icon" title="Editar">
-                                    <i class="fa-solid fa-pen-to-square"></i>
-                                </a>
-                                <a href="{% url 'eliminar_utilizador' user.id %}" class="action-icon delete" title="Eliminar">
-                                    <i class="fa-solid fa-trash"></i>
-                                </a>
-                            </span>
-                            
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="1">Sem utilizadores registados</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-
-        <div class="footer">
-            FaceTrack - Sistema de Gestão de Presenças © 2026
+                <!-- Users Table -->
+                <div class="card">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th><i class="fas fa-user"></i> Nome</th>
+                                    <th>Username</th>
+                                    <th class="text-center">Papel</th>
+                                    <th class="text-end" style="width: 200px;">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in utilizadores %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="fas fa-circle-user text-primary" style="font-size: 1.5rem;"></i>
+                                            <span>{{ user.nome }}</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <code>{{ user.username }}</code>
+                                    </td>
+                                    <td class="text-center">
+                                        {% if user.administrador %}
+                                            <span class="badge badge-primary">
+                                                <i class="fas fa-shield"></i> Admin
+                                            </span>
+                                        {% else %}
+                                            <span class="badge badge-info">
+                                                <i class="fas fa-user-check"></i> Utilizador
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="{% url 'editar_utilizador' user.id %}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-edit"></i> Editar
+                                        </a>
+                                        <a href="{% url 'eliminar_utilizador' user.id %}" class="btn btn-sm btn-danger">
+                                            <i class="fas fa-trash"></i> Eliminar
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-5">
+                                        <i class="fas fa-inbox" style="font-size: 3rem; margin-bottom: 10px;"></i>
+                                        <p class="mt-3">Nenhum utilizador registado</p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
