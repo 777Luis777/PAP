@@ -89,6 +89,24 @@
                                 >
                             </div>
 
+                            <!-- Email -->
+                            <div class="form-group mb-4">
+                                <label for="email" class="form-label">
+                                    <i class="fas fa-envelope"></i> Email
+                                </label>
+                                <input 
+                                    type="email" 
+                                    class="form-control" 
+                                    id="email" 
+                                    name="email" 
+                                    value="{{ utilizador.email }}"
+                                    placeholder="Ex: joao@example.com"
+                                >
+                                <small class="text-muted d-block mt-2">
+                                    <i class="fas fa-info-circle"></i> Campo opcional
+                                </small>
+                            </div>
+
                             <!-- Imagem Atual -->
                             {% if utilizador.imagem %}
                             <div class="form-group mb-4">

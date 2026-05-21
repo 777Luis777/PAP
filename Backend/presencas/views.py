@@ -10,10 +10,11 @@ from django.http import StreamingHttpResponse, JsonResponse
 from django.conf import settings
 from django.db import IntegrityError
 from django.views.decorators.http import require_http_methods
+from django.core.mail import send_mail
 from PIL import Image
 from functools import wraps
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import FichaUtilizador, Presenca
+from .models import FichaUtilizador, Presenca, PasswordResetToken
 
 def admin_required(view_func):
     @wraps(view_func)
@@ -40,13 +41,150 @@ def login(request):
             else:
                 return render(request, "presencas/login.html", {"error": "Password incorreta"})
         except FichaUtilizador.DoesNotExist:
-            return render(request, "presencas/login.html", {"error": "Username não existe"})
+            return render(request, "presencas/login.html", {"error": "Username nÃ£o existe"})
 
     return render(request, "presencas/login.html")
 
 def logout(request):
     request.session.flush()
     return redirect("login")
+
+def recuperar_password(request):
+    """Pagina inicial de recuperacao de palavra-passe - pedir email"""
+    error = None
+    success = None
+
+    if request.method == "POST":
+        email = (request.POST.get("email") or "").strip()
+        request.session.pop('reset_email', None)
+        request.session.pop('reset_token_validado', None)
+        request.session.pop('reset_token', None)
+
+        try:
+            user = FichaUtilizador.objects.filter(email__iexact=email).first()
+            if not user:
+                # Nao revelar se o email existe ou nao por seguranca
+                success = "Se este email esta registado, recebera um codigo de recuperacao."
+                return render(request, "presencas/recuperar_password.html", {
+                    "error": error,
+                    "success": success
+                })
+
+            # Criar token
+            reset_token = PasswordResetToken.criar_token(user)
+
+            # Enviar email
+            assunto = "Recuperacao de Palavra-Passe - FaceTrack"
+            mensagem = f"""
+Ola {user.nome},
+
+Recebeu um pedido para recuperar a sua palavra-passe.
+Utilize o seguinte codigo para continuar (valido por 1 hora):
+
+{reset_token.token}
+
+Se nao solicitou este pedido, ignore este email.
+
+Cumprimentos,
+Equipa FaceTrack
+            """
+
+            try:
+                send_mail(
+                    assunto,
+                    mensagem,
+                    settings.DEFAULT_FROM_EMAIL,
+                    [user.email],
+                    fail_silently=False,
+                )
+                success = "Um email com o codigo de recuperacao foi enviado para o seu email."
+                # Guardar o email na sessao para usar na proxima pagina
+                request.session['reset_email'] = user.email
+            except Exception as e:
+                error = f"Erro ao enviar email: {str(e)}"
+        except Exception:
+            error = "Ocorreu um erro ao processar o pedido de recuperacao."
+
+    return render(request, "presencas/recuperar_password.html", {
+        "error": error,
+        "success": success
+    })
+
+def validar_token(request):
+    """Pagina para validar o codigo e so depois alterar a palavra-passe."""
+    error = None
+    success = None
+
+    email = request.session.get('reset_email')
+    if not email:
+        return redirect("login")
+
+    codigo_validado = bool(request.session.get('reset_token_validado'))
+
+    if request.method == "POST":
+        acao = request.POST.get("acao")
+
+        if acao == "validar_codigo":
+            token = (request.POST.get("token") or "").strip()
+            try:
+                reset_token = PasswordResetToken.objects.get(token=token)
+
+                if not reset_token.is_valid():
+                    error = "O codigo de recuperacao expirou. Solicite um novo."
+                    request.session.pop('reset_email', None)
+                    request.session.pop('reset_token_validado', None)
+                    request.session.pop('reset_token', None)
+                elif reset_token.user.email != email:
+                    error = "Dados invalidos."
+                else:
+                    request.session['reset_token_validado'] = True
+                    request.session['reset_token'] = reset_token.token
+                    codigo_validado = True
+                    success = "Codigo validado com sucesso. Pode agora alterar a palavra-passe."
+            except PasswordResetToken.DoesNotExist:
+                error = "Codigo de recuperacao invalido."
+
+        elif acao == "alterar_password":
+            if not codigo_validado:
+                error = "Valide primeiro o codigo de recuperacao."
+            else:
+                nova_password = request.POST.get("nova_password")
+                confirmar_password = request.POST.get("confirmar_password")
+
+                if not nova_password or not confirmar_password:
+                    error = "Preencha os campos da nova palavra-passe."
+                elif nova_password != confirmar_password:
+                    error = "As palavras-passe nao coincidem."
+                else:
+                    token_guardado = request.session.get('reset_token')
+                    try:
+                        reset_token = PasswordResetToken.objects.get(token=token_guardado)
+
+                        if not reset_token.is_valid():
+                            error = "O codigo de recuperacao expirou. Solicite um novo."
+                            request.session.pop('reset_email', None)
+                            request.session.pop('reset_token_validado', None)
+                            request.session.pop('reset_token', None)
+                        elif reset_token.user.email != email:
+                            error = "Dados invalidos."
+                        else:
+                            reset_token.user.set_password(nova_password)
+                            reset_token.delete()
+                            request.session.pop('reset_email', None)
+                            request.session.pop('reset_token_validado', None)
+                            request.session.pop('reset_token', None)
+                            return render(request, "presencas/recuperar_sucesso.html")
+                    except PasswordResetToken.DoesNotExist:
+                        error = "Codigo de recuperacao invalido."
+        else:
+            error = "Pedido invalido."
+
+    return render(request, "presencas/validar_token.html", {
+        "error": error,
+        "success": success,
+        "email": email,
+        "codigo_validado": codigo_validado
+    })
 
 def home(request):
     if 'user_id' not in request.session:
@@ -65,7 +203,7 @@ def presencas(request):
     if 'user_id' not in request.session:
         return redirect("login")
     
-    # Obter todas as presenças ordenadas por data/hora descrescente
+    # Obter todas as presenÃ§as ordenadas por data/hora descrescente
     from .models import Presenca
     from django.db.models import Q
     
@@ -77,7 +215,7 @@ def presencas(request):
     filtro_tipo = request.GET.get('filtro_tipo', '')
     
     if filtro_dia:
-        # Filtrar por data (apenas a data, não a hora)
+        # Filtrar por data (apenas a data, nÃ£o a hora)
         from datetime import datetime
         data_selecionada = datetime.strptime(filtro_dia, '%Y-%m-%d').date()
         todas_presencas = todas_presencas.filter(data_hora__date=data_selecionada)
@@ -104,7 +242,7 @@ def presencas_utilizador(request):
     if 'user_id' not in request.session:
         return redirect("login")
     
-    # Obter todas as presenças do utilizador logado ordenadas por data/hora descrescente
+    # Obter todas as presenÃ§as do utilizador logado ordenadas por data/hora descrescente
     from .models import Presenca
     
     user_id = request.session['user_id']
@@ -115,7 +253,7 @@ def presencas_utilizador(request):
     filtro_tipo = request.GET.get('filtro_tipo', '')
     
     if filtro_dia:
-        # Filtrar por data (apenas a data, não a hora)
+        # Filtrar por data (apenas a data, nÃ£o a hora)
         from datetime import datetime
         data_selecionada = datetime.strptime(filtro_dia, '%Y-%m-%d').date()
         todas_presencas = todas_presencas.filter(data_hora__date=data_selecionada)
@@ -132,7 +270,7 @@ def presencas_utilizador(request):
 
 def load_known_faces():
     # use the Django ORM instead of a raw sqlite connection; this
-    # keeps the code database‑agnostic and uses the configured DB path.
+    # keeps the code databaseâ€‘agnostic and uses the configured DB path.
     registos = FichaUtilizador.objects.values_list("nome", "imagem")
 
     known_face_encodings = []
@@ -142,7 +280,7 @@ def load_known_faces():
         # imagem field may already be a path-like object so cast to str
         caminho_completo = os.path.normpath(os.path.join(settings.MEDIA_ROOT, str(caminho_imagem)))
         if not os.path.exists(caminho_completo):
-            print(f"[!] Imagem não encontrada: {caminho_completo}")
+            print(f"[!] Imagem nÃ£o encontrada: {caminho_completo}")
             continue
 
         imagem = Image.open(caminho_completo).convert("RGB")
@@ -161,14 +299,14 @@ def load_known_faces():
 KNOWN_FACE_ENCODINGS, KNOWN_FACE_NAMES = load_known_faces()
 
 
-# Variável global para armazenar o rosto detetado atualmente
+# VariÃ¡vel global para armazenar o rosto detetado atualmente
 current_detected_person = None
 
 def gen_frames():
     global current_detected_person
     video_capture = cv2.VideoCapture(0)
     if not video_capture.isOpened():
-        print("[!] Erro ao abrir a câmara")
+        print("[!] Erro ao abrir a cÃ¢mara")
         return
 
     process_this_frame = True
@@ -178,7 +316,7 @@ def gen_frames():
         if not ret:
             break
 
-        # Reduzir tamanho para acelerar detecção
+        # Reduzir tamanho para acelerar detecÃ§Ã£o
         small_frame = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
         rgb_small_frame = cv2.cvtColor(small_frame, cv2.COLOR_BGR2RGB)
 
@@ -233,7 +371,7 @@ def camera_feed(request):
 
 def get_detected_person(request):
     """
-    Endpoint para obter a pessoa atualmente detetada na câmara.
+    Endpoint para obter a pessoa atualmente detetada na cÃ¢mara.
     Retorna JSON com o nome da pessoa detetada ou None.
     """
     global current_detected_person
@@ -249,7 +387,7 @@ def camera_page(request):
 @require_http_methods(["POST"])
 def registar_presenca(request):
     """
-    Endpoint para registar uma presença (entrada ou saída).
+    Endpoint para registar uma presenÃ§a (entrada ou saÃ­da).
     Esperado JSON: {"nome": "Nome do Utilizador", "tipo": "entrada" ou "saida"}
     """
     try:
@@ -258,10 +396,10 @@ def registar_presenca(request):
         tipo = data.get('tipo', 'entrada')
         
         if not nome:
-            return JsonResponse({'sucesso': False, 'erro': 'Nome não fornecido'}, status=400)
+            return JsonResponse({'sucesso': False, 'erro': 'Nome nÃ£o fornecido'}, status=400)
         
         if tipo not in ['entrada', 'saida']:
-            return JsonResponse({'sucesso': False, 'erro': 'Tipo inválido'}, status=400)
+            return JsonResponse({'sucesso': False, 'erro': 'Tipo invÃ¡lido'}, status=400)
         
         try:
             utilizador = FichaUtilizador.objects.get(nome=nome)
@@ -269,13 +407,13 @@ def registar_presenca(request):
             presenca.save()
             return JsonResponse({
                 'sucesso': True,
-                'mensagem': f'Presença registada: {nome} - {tipo.capitalize()}',
+                'mensagem': f'PresenÃ§a registada: {nome} - {tipo.capitalize()}',
                 'data_hora': presenca.data_hora.strftime('%d/%m/%Y %H:%M:%S')
             })
         except FichaUtilizador.DoesNotExist:
-            return JsonResponse({'sucesso': False, 'erro': f'Utilizador {nome} não encontrado'}, status=404)
+            return JsonResponse({'sucesso': False, 'erro': f'Utilizador {nome} nÃ£o encontrado'}, status=404)
     except json.JSONDecodeError:
-        return JsonResponse({'sucesso': False, 'erro': 'JSON inválido'}, status=400)
+        return JsonResponse({'sucesso': False, 'erro': 'JSON invÃ¡lido'}, status=400)
     except Exception as e:
         return JsonResponse({'sucesso': False, 'erro': str(e)}, status=500)
 
@@ -304,19 +442,20 @@ def adicionar_utilizador(request):
     if request.method == "POST":
         username = request.POST.get("username")
         nome = request.POST.get("nome")
+        email = request.POST.get("email")
         password = request.POST.get("password")
         administrador = request.POST.get("administrador") == "on"
         imagem = request.FILES.get("imagem")
 
         if not username or not nome or not password or not imagem:
-            error = "Por favor, preencha todos os campos obrigatórios e escolha uma imagem."
+            error = "Por favor, preencha todos os campos obrigatÃ³rios e escolha uma imagem."
         else:
             try:
-                novo = FichaUtilizador(username=username, nome=nome, administrador=administrador, imagem=imagem)
+                novo = FichaUtilizador(username=username, nome=nome, email=email, administrador=administrador, imagem=imagem)
                 novo.set_password(password)
                 return redirect("lista_utilizadores")
             except IntegrityError:
-                error = "Já existe um utilizador com esse username."
+                error = "JÃ¡ existe um utilizador com esse username."
 
     return render(request, "presencas/adicionar_utilizador.html", {"error": error})
 
@@ -329,6 +468,7 @@ def editar_utilizador(request, user_id):
     if request.method == "POST":
         utilizador.username = request.POST.get("username", utilizador.username)
         utilizador.nome = request.POST.get("nome", utilizador.nome)
+        utilizador.email = request.POST.get("email", utilizador.email)
 
         password = request.POST.get("password")
         if password:
@@ -343,7 +483,7 @@ def editar_utilizador(request, user_id):
             utilizador.save()
             return redirect("lista_utilizadores")
         except IntegrityError:
-            error = "Já existe um utilizador com esse username."
+            error = "JÃ¡ existe um utilizador com esse username."
 
     return render(request, "presencas/editar_utilizador.html", {"utilizador": utilizador, "error": error})
 
@@ -357,3 +497,4 @@ def eliminar_utilizador(request, user_id):
         return redirect("lista_utilizadores")
 
     return render(request, "presencas/eliminar_utilizador.html", {"utilizador": utilizador})
+
