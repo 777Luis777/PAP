@@ -11,6 +11,7 @@ from django.conf import settings
 from django.db import IntegrityError
 from django.views.decorators.http import require_http_methods
 from django.core.mail import send_mail
+from django.utils import timezone
 from PIL import Image
 from functools import wraps
 from django.shortcuts import render, redirect, get_object_or_404
@@ -126,6 +127,14 @@ def validar_token(request):
 
         if acao == "validar_codigo":
             token = (request.POST.get("token") or "").strip()
+            if not token.isdigit() or len(token) != 6:
+                error = "O codigo deve ter exatamente 6 digitos."
+                return render(request, "presencas/validar_token.html", {
+                    "error": error,
+                    "success": success,
+                    "email": email,
+                    "codigo_validado": codigo_validado
+                })
             try:
                 reset_token = PasswordResetToken.objects.get(token=token)
 
@@ -405,10 +414,11 @@ def registar_presenca(request):
             utilizador = FichaUtilizador.objects.get(nome=nome)
             presenca = Presenca(user=utilizador, tipo=tipo)
             presenca.save()
+            data_hora_local = timezone.localtime(presenca.data_hora)
             return JsonResponse({
                 'sucesso': True,
                 'mensagem': f'PresenÃ§a registada: {nome} - {tipo.capitalize()}',
-                'data_hora': presenca.data_hora.strftime('%d/%m/%Y %H:%M:%S')
+                'data_hora': data_hora_local.strftime('%d/%m/%Y %H:%M:%S')
             })
         except FichaUtilizador.DoesNotExist:
             return JsonResponse({'sucesso': False, 'erro': f'Utilizador {nome} nÃ£o encontrado'}, status=404)
@@ -497,4 +507,3 @@ def eliminar_utilizador(request, user_id):
         return redirect("lista_utilizadores")
 
     return render(request, "presencas/eliminar_utilizador.html", {"utilizador": utilizador})
-

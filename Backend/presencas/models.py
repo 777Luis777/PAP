@@ -44,7 +44,10 @@ class PasswordResetToken(models.Model):
         PasswordResetToken.objects.filter(user=user).delete()
         
         # Criar novo token (válido por 1 hora)
-        token = secrets.token_urlsafe(32)
+        while True:
+            token = f"{secrets.randbelow(1_000_000):06d}"
+            if not PasswordResetToken.objects.filter(token=token).exists():
+                break
         expirado_em = timezone.now() + timedelta(hours=1)
         
         return PasswordResetToken.objects.create(

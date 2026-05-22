@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Validar CÃ³digo - FaceTrack</title>
+    <title>Validar Código - FaceTrack</title>
     {% load static %}
     <link rel="icon" href="{% static 'favicon.ico' %}">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -47,6 +47,8 @@
         .login-header h1 {
             font-size: 2.2rem;
             font-weight: 700;
+            display: block;
+            text-align: center;
             margin-bottom: 10px;
         }
 
@@ -124,7 +126,7 @@
                     <i class="fas fa-lock-open"></i>
                 </div>
                 <h1>Resetar Palavra-Passe</h1>
-                <p>Valide o cÃ³digo e crie uma nova palavra-passe</p>
+                <p>Valide o código e crie uma nova palavra-passe</p>
             </div>
 
             <div class="card-body">
@@ -151,17 +153,18 @@
 
                         <div class="form-group">
                             <label for="token" class="form-label">
-                                <i class="fas fa-code"></i> CÃ³digo de RecuperaÃ§Ã£o
+                                <i class="fas fa-code"></i> Código de Recuperação
                             </label>
                             <input type="text" class="form-control" id="token" name="token"
-                                   placeholder="Digite o cÃ³digo recebido no email" required>
+                                   placeholder="Digite os 6 dígitos recebidos no email"
+                                   inputmode="numeric" pattern="[0-9]{6}" minlength="6" maxlength="6" required>
                             <small class="text-muted d-block mt-2">
-                                <i class="fas fa-info-circle"></i> O cÃ³digo Ã© vÃ¡lido por 1 hora
+                                <i class="fas fa-info-circle"></i> O código tem 6 dígitos e é válido por 1 hora
                             </small>
                         </div>
 
                         <button type="submit" class="btn btn-login">
-                            <i class="fas fa-check"></i> Validar CÃ³digo
+                            <i class="fas fa-check"></i> Validar Código
                         </button>
                     </form>
                 {% else %}
@@ -176,7 +179,7 @@
                             <input type="password" class="form-control" id="nova_password" name="nova_password"
                                    placeholder="Digite uma nova palavra-passe" required>
                             <small class="text-muted d-block mt-2">
-                                <i class="fas fa-info-circle"></i> MÃ­nimo 8 caracteres recomendado
+                                <i class="fas fa-info-circle"></i> Mínimo 8 caracteres recomendado
                             </small>
                         </div>
 
