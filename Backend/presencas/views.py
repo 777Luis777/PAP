@@ -287,9 +287,13 @@ def load_known_faces():
 
     for nome, caminho_imagem in registos:
         # imagem field may already be a path-like object so cast to str
+        if not caminho_imagem:
+            print(f"[!] Caminho de imagem vazio para {nome}")
+            continue
+            
         caminho_completo = os.path.normpath(os.path.join(settings.MEDIA_ROOT, str(caminho_imagem)))
-        if not os.path.exists(caminho_completo):
-            print(f"[!] Imagem nÃ£o encontrada: {caminho_completo}")
+        if not os.path.exists(caminho_completo) or not os.path.isfile(caminho_completo):
+            print(f"[!] Imagem não encontrada ou inválida: {caminho_completo}")
             continue
 
         imagem = Image.open(caminho_completo).convert("RGB")
