@@ -1,1 +1,1 @@
-web: gunicorn SistemaPresencas
+web: gunicorn core.wsgi
