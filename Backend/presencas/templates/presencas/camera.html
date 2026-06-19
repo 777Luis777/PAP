@@ -570,7 +570,7 @@
 
             const image = canvas.toDataURL("image/jpeg");
 
-            fetch("{% url 'process_frame' %}", {
+            fetch("{% url 'gen_frames' %}", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

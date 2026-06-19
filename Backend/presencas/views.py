@@ -323,8 +323,11 @@ current_detected_person = None
 @csrf_exempt
 @require_http_methods(["POST"])
 def gen_frames(request):
-    data = json.loads(request.body)
+    data = json.loads(request.body or "{}")
     image_data = data.get("image")
+
+    if not image_data:
+        return JsonResponse({"error": "No image provided"}, status=400)
 
     image_data = image_data.split(",")[1]
     img_bytes = base64.b64decode(image_data)
