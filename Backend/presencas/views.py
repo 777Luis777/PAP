@@ -17,6 +17,7 @@ from PIL import Image
 from functools import wraps
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import FichaUtilizador, Presenca, PasswordResetToken
+from django.views.decorators.csrf import csrf_exempt
 
 def admin_required(view_func):
     @wraps(view_func)
