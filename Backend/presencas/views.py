@@ -309,7 +309,11 @@ def load_known_faces():
     return known_face_encodings, known_face_names
 
 # Carregar rostos uma vez
-KNOWN_FACE_ENCODINGS, KNOWN_FACE_NAMES = load_known_faces()
+try:
+    KNOWN_FACE_ENCODINGS, KNOWN_FACE_NAMES = load_known_faces()
+except Exception:
+    KNOWN_FACE_ENCODINGS = []
+    KNOWN_FACE_NAMES = []
 
 
 # VariÃ¡vel global para armazenar o rosto detetado atualmente
