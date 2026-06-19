@@ -340,7 +340,8 @@
 
             <div class="camera-body">
                 <div class="camera-box">
-                    <img src="{% url 'camera_feed' %}" alt="Camera Feed" />
+                    <video id="video" autoplay></video>
+                    <canvas id="canvas" style="display:none;"></canvas>
                 </div>
 
                 <div class="detected-person" id="detectedPerson">
@@ -551,6 +552,42 @@
                 clearInterval(pollingInterval);
             }
         });
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        // abrir câmara no browser
+        navigator.mediaDevices.getUserMedia({ video: true })
+        .then(stream => {
+            video.srcObject = stream;
+        });
+
+        setInterval(() => {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+
+            ctx.drawImage(video, 0, 0);
+
+            const image = canvas.toDataURL("image/jpeg");
+
+            fetch("{% url 'process_frame' %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCookie('csrftoken')
+                },
+                body: JSON.stringify({ image: image })
+            })
+            .then(res => res.json())
+            .then(data => {
+                console.log("Pessoa:", data.nome);
+
+                if (data.nome && data.nome !== "Desconhecido") {
+                    document.getElementById("personName").textContent = data.nome;
+                }
+            });
+
+        }, 700);
     </script>
 </body>
 </html>

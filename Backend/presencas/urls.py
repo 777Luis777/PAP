@@ -18,5 +18,6 @@ urlpatterns = [
     path('utilizador/novo/', views.adicionar_utilizador, name='adicionar_utilizador'),
     path('utilizador/<int:user_id>/editar/', views.editar_utilizador, name='editar_utilizador'),
     path('utilizador/<int:user_id>/eliminar/', views.eliminar_utilizador, name='eliminar_utilizador'),
+    path('gen_frames/', views.gen_frames, name='gen_frames'),
     path('', views.home, name='home'),
 ]
