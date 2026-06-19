@@ -10,7 +10,6 @@ urlpatterns = [
     path("presencas/",views.presencas, name="presencas"),
     path('camera/', views.camera_page, name='camera_page'),
     path('presencas_utilizador/', views.presencas_utilizador, name='presencas_utilizador'),
-    path('camera_feed/', views.camera_feed, name='camera_feed'),
     path('api/get_detected_person/', views.get_detected_person, name='get_detected_person'),
     path('api/registar_presenca/', views.registar_presenca, name='registar_presenca'),
     path('administracao/', views.administracao, name='administracao'),

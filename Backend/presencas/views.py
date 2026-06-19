@@ -319,7 +319,7 @@ except Exception:
 
 # VariÃ¡vel global para armazenar o rosto detetado atualmente
 current_detected_person = None
-
+@csrf_exempt
 @require_http_methods(["POST"])
 def gen_frames(request):
     data = json.loads(request.body)
@@ -353,11 +353,6 @@ def gen_frames(request):
         "nome": name,
         "detectado": name != "Desconhecido"
     })
-
-
-def camera_feed(request):
-    return StreamingHttpResponse(gen_frames(),
-                                 content_type='multipart/x-mixed-replace; boundary=frame')
 
 def get_detected_person(request):
     """
