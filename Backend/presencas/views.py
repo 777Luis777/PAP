@@ -280,34 +280,37 @@ def presencas_utilizador(request):
     })
 
 def load_known_faces():
-    # use the Django ORM instead of a raw sqlite connection; this
-    # keeps the code databaseâ€‘agnostic and uses the configured DB path.
-    registos = FichaUtilizador.objects.values_list("nome", "imagem")
+    registos = FichaUtilizador.objects.all()
 
     known_face_encodings = []
     known_face_names = []
 
-    for nome, caminho_imagem in registos:
-        # imagem field may already be a path-like object so cast to str
+    for user in registos:
+        nome = user.nome
+        caminho_imagem = user.imagem
+
         if not caminho_imagem:
-            print(f"[!] Caminho de imagem vazio para {nome}")
-            continue
-            
-        caminho_completo = os.path.normpath(os.path.join(settings.MEDIA_ROOT, str(caminho_imagem)))
-        if not os.path.exists(caminho_completo) or not os.path.isfile(caminho_completo):
-            print(f"[!] Imagem não encontrada ou inválida: {caminho_completo}")
+            print(f"[!] Sem imagem: {nome}")
             continue
 
-        imagem = Image.open(caminho_completo).convert("RGB")
-        imagem_np = np.array(imagem, dtype=np.uint8)
-        encodings = face_recognition.face_encodings(imagem_np)
+        caminho_completo = os.path.join(settings.MEDIA_ROOT, str(caminho_imagem))
 
-        if encodings:
+        print("A verificar:", caminho_completo)
+
+        if not os.path.isfile(caminho_completo):
+            print(f"[!] Não existe: {caminho_completo}")
+            continue
+
+        image = face_recognition.load_image_file(caminho_completo)
+        encodings = face_recognition.face_encodings(image)
+
+        print(f"{nome} encodings:", len(encodings))
+
+        if len(encodings) > 0:
             known_face_encodings.append(encodings[0])
             known_face_names.append(nome)
-        else:
-            print(f"[!] Nenhum rosto encontrado na imagem de {nome}")
 
+    print("TOTAL CARREGADO:", len(known_face_names))
     return known_face_encodings, known_face_names
 
 # Carregar rostos uma vez
