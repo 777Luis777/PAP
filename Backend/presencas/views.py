@@ -332,34 +332,54 @@ def gen_frames(request):
     if not image_data:
         return JsonResponse({"error": "No image provided"}, status=400)
 
-    image_data = image_data.split(",")[1]
-    img_bytes = base64.b64decode(image_data)
+    try:
+        image_data = image_data.split(",")[1]
+        img_bytes = base64.b64decode(image_data)
 
-    np_arr = np.frombuffer(img_bytes, np.uint8)
-    frame = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+        np_arr = np.frombuffer(img_bytes, np.uint8)
+        frame = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
 
-    rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
-    face_locations = face_recognition.face_locations(rgb)
-    face_encodings = face_recognition.face_encodings(rgb, face_locations)
+        face_locations = face_recognition.face_locations(rgb)
+        face_encodings = face_recognition.face_encodings(rgb, face_locations)
 
-    name = "Desconhecido"
+        name = "Desconhecido"
 
-    for encoding in face_encodings:
-        matches = face_recognition.compare_faces(KNOWN_FACE_ENCODINGS, encoding)
+        # 🔥 DEBUG IMPORTANTE
+        print("Faces encontradas:", len(face_encodings))
+        print("Known encodings:", len(KNOWN_FACE_ENCODINGS))
 
-        if True in matches:
+        if len(KNOWN_FACE_ENCODINGS) == 0:
+            print("[ERRO] Nenhum rosto carregado na base de dados!")
+
+        for encoding in face_encodings:
+
+            if len(KNOWN_FACE_ENCODINGS) == 0:
+                continue
+
+            # 🔥 calcula distâncias primeiro (mais fiável)
             face_distances = face_recognition.face_distance(KNOWN_FACE_ENCODINGS, encoding)
-            best = np.argmin(face_distances)
-            name = KNOWN_FACE_NAMES[best]
 
-    global current_detected_person
-    current_detected_person = name if name else None
+            best_match_index = np.argmin(face_distances)
 
-    return JsonResponse({
-        "nome": name,
-        "detectado": name != "Desconhecido"
-    })
+            # 🔥 tolerância (podes ajustar 0.5–0.6)
+            if face_distances[best_match_index] < 0.5:
+                name = KNOWN_FACE_NAMES[best_match_index]
+            else:
+                name = "Desconhecido"
+
+        global current_detected_person
+        current_detected_person = name
+
+        return JsonResponse({
+            "nome": name,
+            "detectado": name != "Desconhecido"
+        })
+
+    except Exception as e:
+        print("[ERRO gen_frames]:", str(e))
+        return JsonResponse({"error": str(e)}, status=500)
 
 def get_detected_person(request):
     """
