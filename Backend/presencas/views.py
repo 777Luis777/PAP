@@ -349,7 +349,6 @@ current_detected_person = None
 @csrf_exempt
 @require_http_methods(["POST"])
 def gen_frames(request):
-    import face_recognition
     data = json.loads(request.body or "{}")
     image_data = data.get("image")
 
@@ -357,6 +356,8 @@ def gen_frames(request):
         return JsonResponse({"error": "No image provided"}, status=400)
 
     try:
+        import face_recognition
+
         image_data = image_data.split(",")[1]
         img_bytes = base64.b64decode(image_data)
 
@@ -401,7 +402,7 @@ def gen_frames(request):
             "detectado": name != "Desconhecido"
         })
 
-    except Exception as e:
+    except (Exception, SystemExit) as e:
         print("[ERRO gen_frames]:", str(e))
         return JsonResponse({"error": str(e)}, status=500)
 
