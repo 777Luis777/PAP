@@ -6,8 +6,7 @@ import io
 import datetime
 import os
 import json
-import sib_api_v3_sdk
-from sib_api_v3_sdk.rest import ApiException
+from .email_utils import enviar_email_brevo
 from django.http import StreamingHttpResponse, JsonResponse
 from django.conf import settings
 from django.db import IntegrityError
@@ -52,52 +51,6 @@ def login(request):
 def logout(request):
     request.session.flush()
     return redirect("login")
-
-def enviar_email_brevo(destino, assunto, mensagem):
-
-    configuration = sib_api_v3_sdk.Configuration()
-
-    configuration.api_key['api-key'] = os.getenv(
-        "BREVO_API_KEY"
-    )
-
-
-    api_instance = sib_api_v3_sdk.TransactionalEmailsApi(
-        sib_api_v3_sdk.ApiClient(configuration)
-    )
-
-
-    email = sib_api_v3_sdk.SendSmtpEmail(
-
-        sender={
-            "name": "FaceTrack",
-            "email": os.getenv("EMAIL_FROM")
-        },
-
-        to=[
-            {
-                "email": destino
-            }
-        ],
-
-        subject=assunto,
-
-        text_content=mensagem
-    )
-
-
-    try:
-
-        api_instance.send_transac_email(email)
-
-        return True
-
-
-    except ApiException as e:
-
-        print("Erro Brevo:", e)
-
-        return False
 
 def recuperar_password(request):
     error = None
@@ -385,7 +338,8 @@ def load_known_faces():
 # Carregar rostos uma vez
 try:
     KNOWN_FACE_ENCODINGS, KNOWN_FACE_NAMES = load_known_faces()
-except Exception:
+except (Exception, SystemExit) as e:
+    print(f"[!] Falha ao carregar reconhecimento facial: {e}")
     KNOWN_FACE_ENCODINGS = []
     KNOWN_FACE_NAMES = []
 
