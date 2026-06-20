@@ -1,6 +1,5 @@
 import base64
 import sqlite3
-import face_recognition
 import numpy as np
 import cv2
 import io
@@ -350,6 +349,7 @@ def presencas_utilizador(request):
     })
 
 def load_known_faces():
+    import face_recognition
     registos = FichaUtilizador.objects.all()
 
     known_face_encodings = []
@@ -396,6 +396,7 @@ current_detected_person = None
 @csrf_exempt
 @require_http_methods(["POST"])
 def gen_frames(request):
+    import face_recognition
     data = json.loads(request.body or "{}")
     image_data = data.get("image")
 
