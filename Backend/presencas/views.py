@@ -7,6 +7,9 @@ import io
 import datetime
 import os
 import json
+import os
+import sib_api_v3_sdk
+from sib_api_v3_sdk.rest import ApiException
 from django.http import StreamingHttpResponse, JsonResponse
 from django.conf import settings
 from django.db import IntegrityError
@@ -52,66 +55,133 @@ def logout(request):
     request.session.flush()
     return redirect("login")
 
+def enviar_email_brevo(destino, assunto, mensagem):
+
+    configuration = sib_api_v3_sdk.Configuration()
+
+    configuration.api_key['api-key'] = os.getenv(
+        "BREVO_API_KEY"
+    )
+
+
+    api_instance = sib_api_v3_sdk.TransactionalEmailsApi(
+        sib_api_v3_sdk.ApiClient(configuration)
+    )
+
+
+    email = sib_api_v3_sdk.SendSmtpEmail(
+
+        sender={
+            "name": "FaceTrack",
+            "email": os.getenv("EMAIL_FROM")
+        },
+
+        to=[
+            {
+                "email": destino
+            }
+        ],
+
+        subject=assunto,
+
+        text_content=mensagem
+    )
+
+
+    try:
+
+        api_instance.send_transac_email(email)
+
+        return True
+
+
+    except ApiException as e:
+
+        print("Erro Brevo:", e)
+
+        return False
+
 def recuperar_password(request):
-    """Pagina inicial de recuperacao de palavra-passe - pedir email"""
     error = None
     success = None
 
     if request.method == "POST":
+
         email = (request.POST.get("email") or "").strip()
+
         request.session.pop('reset_email', None)
         request.session.pop('reset_token_validado', None)
         request.session.pop('reset_token', None)
 
         try:
-            user = FichaUtilizador.objects.filter(email__iexact=email).first()
-            if not user:
-                # Nao revelar se o email existe ou nao por seguranca
-                success = "Se este email esta registado, recebera um codigo de recuperacao."
-                return render(request, "presencas/recuperar_password.html", {
-                    "error": error,
-                    "success": success
-                })
 
-            # Criar token
+            user = FichaUtilizador.objects.filter(email__iexact=email).first()
+
+            if not user:
+                success = "Se este email esta registado, recebera um codigo de recuperacao."
+
+                return render(request,
+                    "presencas/recuperar_password.html",
+                    {
+                        "error": error,
+                        "success": success
+                    }
+                )
+
+
             reset_token = PasswordResetToken.criar_token(user)
 
-            # Enviar email
+
             assunto = "Recuperacao de Palavra-Passe - FaceTrack"
+
             mensagem = f"""
 Ola {user.nome},
 
 Recebeu um pedido para recuperar a sua palavra-passe.
-Utilize o seguinte codigo para continuar (valido por 1 hora):
+
+Codigo de recuperacao:
 
 {reset_token.token}
 
-Se nao solicitou este pedido, ignore este email.
+Este codigo e valido por 1 hora.
 
-Cumprimentos,
+Se nao fez este pedido ignore este email.
+
 Equipa FaceTrack
-            """
+"""
 
-            try:
-                send_mail(
-                    assunto,
-                    mensagem,
-                    settings.DEFAULT_FROM_EMAIL,
-                    [user.email],
-                    fail_silently=False,
-                )
-                success = "Um email com o codigo de recuperacao foi enviado para o seu email."
-                # Guardar o email na sessao para usar na proxima pagina
+
+            enviado = enviar_email_brevo(
+                user.email,
+                assunto,
+                mensagem
+            )
+
+
+            if enviado:
+
+                success = "Um email com o codigo foi enviado."
+
                 request.session['reset_email'] = user.email
-            except Exception as e:
-                error = f"Erro ao enviar email: {str(e)}"
-        except Exception:
-            error = "Ocorreu um erro ao processar o pedido de recuperacao."
 
-    return render(request, "presencas/recuperar_password.html", {
-        "error": error,
-        "success": success
-    })
+            else:
+
+                error = "Nao foi possivel enviar o email."
+
+
+        except Exception as e:
+
+            error = f"Erro: {str(e)}"
+
+
+
+    return render(request,
+        "presencas/recuperar_password.html",
+        {
+            "error": error,
+            "success": success
+        }
+    )
 
 def validar_token(request):
     """Pagina para validar o codigo e so depois alterar a palavra-passe."""
