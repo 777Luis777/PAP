@@ -6,7 +6,6 @@ import io
 import datetime
 import os
 import json
-import os
 import sib_api_v3_sdk
 from sib_api_v3_sdk.rest import ApiException
 from django.http import StreamingHttpResponse, JsonResponse
